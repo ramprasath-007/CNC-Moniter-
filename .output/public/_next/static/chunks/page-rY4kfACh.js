@@ -1,0 +1,1 @@
+import{r as e}from"./framework-D_rUT4EX.js";import{t}from"./App-EycUdPPy.js";var n=e();function r(){return(0,n.jsx)(t,{initialPage:`analytics`})}export{r as default};

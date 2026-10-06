@@ -1,0 +1,1 @@
+import{g as e,y as t}from"./root-params-CAbQufCy.mjs";async function n(n){return t(e(n.params,n.rootParamNamesByPattern[n.pattern]),()=>n.fn({params:n.params}))}export{n};

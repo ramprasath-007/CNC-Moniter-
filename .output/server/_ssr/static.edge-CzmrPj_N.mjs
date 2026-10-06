@@ -1,0 +1,1 @@
+import{__commonJSMin as e,require_react_dom_server_edge_production as t}from"./ssr.mjs";var n=e((e=>{var n=t();e.version=n.version,e.prerender=n.prerender,e.resumeAndPrerender=n.resumeAndPrerender}))();export{n as default};

@@ -1,0 +1,1 @@
+import{c as e}from"./rsc-CWD_uClf.mjs";var t=e(()=>{throw Error(`Unexpectedly client reference export 'default' is called on server`)},`08e5d955e90a`,`default`);export{t as default};

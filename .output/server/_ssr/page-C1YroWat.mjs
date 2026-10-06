@@ -1,0 +1,1 @@
+import{require_jsx_runtime as e}from"./ssr.mjs";import{bF as t}from"./App-kAklpLWG.mjs";var n=e();function r(){return(0,n.jsx)(t,{initialPage:`reports`})}export{r as default};
