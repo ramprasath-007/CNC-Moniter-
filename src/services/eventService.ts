@@ -1,0 +1,12 @@
+import type { StoppageEvent, Transport } from '../types';
+import {monetaryLoss} from '../utils/calculations';
+export function timestamp(v:unknown):number { if(typeof v==='number')return v<1e12?v*1000:v;if(typeof v==='string'){const n=Date.parse(v);return Number.isFinite(n)?n:0}return 0; }
+export function normalizeEvent(raw:any,id:string,machineId:string):StoppageEvent|null {
+ if(!raw||typeof raw!=='object')return null; const startTime=timestamp(raw.startTime),endTime=timestamp(raw.endTime); if(!startTime||endTime<=startTime)return null;
+ if(raw.machineId&&raw.machineId!==machineId)return null; const transport:Transport=raw.transport||'WIFI';if(!['WIFI','LORA_GATEWAY'].includes(transport))return null;
+ const value=(v:any)=>typeof v==='number'&&Number.isFinite(v)?v:null;
+ return {id:raw.id||id,machineId,startTime,endTime,duration:(endTime-startTime)/1000,transport,currentBefore:value(raw.currentBefore),currentDuring:value(raw.currentDuring),currentAfter:value(raw.currentAfter),vibrationBefore:value(raw.vibrationBefore),vibrationDuring:value(raw.vibrationDuring),vibrationAfter:value(raw.vibrationAfter)};
+}
+export function csv(rows:Record<string,unknown>[]) { if(!rows.length)return '';const keys=Object.keys(rows[0]);const escape=(v:unknown)=>{let s=String(v??'');if(/^[=+@\-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'};return '\uFEFF'+[keys.map(escape).join(','),...rows.map(r=>keys.map(k=>escape(r[k])).join(','))].join('\r\n'); }
+export function downloadCsv(filename:string,rows:Record<string,unknown>[]) {const blob=new Blob([csv(rows)],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+export function eventRows(events:StoppageEvent[],ratePerMinute:number|null=null){return events.map(e=>({event_id:e.id,machine:e.machineId,source:e.transport==='SIMULATION'?'SIMULATION':'LIVE HARDWARE',start:new Date(e.startTime).toISOString(),end:new Date(e.endTime).toISOString(),duration_seconds:e.duration,estimated_loss_INR:monetaryLoss(e.duration,ratePerMinute),assumed_cost_INR_per_minute:ratePerMinute,cost_basis:'recorded_micro_stoppage_duration',current_before_A:e.currentBefore,current_during_A:e.currentDuring,current_after_A:e.currentAfter,vibration_before_g:e.vibrationBefore,vibration_during_g:e.vibrationDuring,vibration_after_g:e.vibrationAfter,transport:e.transport}));}
