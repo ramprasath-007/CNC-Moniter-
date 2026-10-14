@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -11,6 +12,7 @@ import {
     type Settings,
     type MachineState,
     type Telemetry,
+    type Snapshot,
 } from '../types';
 
 const ESP32_TIMEOUT = 10000; // 10 seconds
@@ -19,9 +21,9 @@ export function useTelemetry() {
     const [settings, setSettings] = useState<Settings>(defaults);
     const [token, setToken] = useState('');
 
-    const [data, setData] = useState({
+    const [data, setData] = useState<Snapshot>({
         ...initialSnapshot,
-        databaseState: 'connecting' as const,
+        databaseState: 'connecting',
         ready: true,
     });
 
@@ -31,12 +33,9 @@ export function useTelemetry() {
         let latestTelemetry: Telemetry | null = null;
         let latestLastSeen = 0;
 
-        // -----------------------------------------
         // Firebase realtime listener
-        // -----------------------------------------
         const unsubscribe = onValue(
             liveRef,
-
             (snapshot) => {
                 if (!snapshot.exists()) {
                     latestTelemetry = null;
@@ -65,7 +64,6 @@ export function useTelemetry() {
                 const telemetry: Telemetry = {
                     machineId: 'CNC01',
 
-                    // Use ESP32/Firebase timestamp
                     timestamp: lastSeen || Date.now(),
 
                     current:
@@ -124,7 +122,6 @@ export function useTelemetry() {
                     ready: true,
                 }));
             },
-
             (error) => {
                 console.error('Firebase read error:', error);
 
@@ -138,16 +135,13 @@ export function useTelemetry() {
             }
         );
 
-        // -----------------------------------------
         // ESP32 heartbeat checker
-        // -----------------------------------------
         const heartbeatChecker = window.setInterval(() => {
             if (!latestTelemetry || !latestLastSeen) {
                 return;
             }
 
-            const age =
-                Date.now() - latestLastSeen;
+            const age = Date.now() - latestLastSeen;
 
             if (age > ESP32_TIMEOUT) {
                 setData((previous) => {
@@ -157,23 +151,15 @@ export function useTelemetry() {
 
                     return {
                         ...previous,
-
-                        // Old sensor values are no longer live
                         live: null,
-
                         databaseState: 'connected',
-
                         error: '',
-
                         ready: true,
                     };
                 });
             }
         }, 1000);
 
-        // -----------------------------------------
-        // Cleanup
-        // -----------------------------------------
         return () => {
             unsubscribe();
             window.clearInterval(heartbeatChecker);
@@ -186,7 +172,6 @@ export function useTelemetry() {
     ) {
         setSettings(next);
         setToken(authToken);
-
         return next;
     }
 
